@@ -53,4 +53,30 @@ public class CardController(AppDbContext _context) : Controller
         return RedirectToAction(nameof(Index)); 
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Update(int id)
+    {
+        var card = await _context.Cards.FindAsync(id);
+        if (card is not { }) return NotFound();
+        return View(card);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Update(Card card)
+    {
+        if (!ModelState.IsValid) return View();
+        var existCard = await _context.Cards.FindAsync(card.Id);
+        
+        if (existCard is null) return BadRequest();
+
+        existCard.Title = card.Title;
+        existCard.Description = card.Description;
+        existCard.ImagePath = card.ImagePath;
+
+        _context.Cards.Update(existCard);
+        await _context.SaveChangesAsync();
+
+        return RedirectToAction(nameof(Index));
+    }
 }
+ 
