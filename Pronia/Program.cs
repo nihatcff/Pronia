@@ -28,6 +28,8 @@ namespace Pronia
 
             app.MapDefaultControllerRoute();
             app.Run();
+
+                
         }
     }
 }
