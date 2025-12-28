@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Pronia.Contexts;
+using Pronia.Helpers;
 using Pronia.ViewModels.ProductViewModels;
-using System;
 using System.Threading.Tasks;
 
 namespace Pronia.Areas.Admin.Controllers;
@@ -12,14 +11,29 @@ public class ProductController(AppDbContext _context, IWebHostEnvironment _envir
 {
     public async Task<IActionResult> Index()
     {
-        var products = await _context.Products.Include(x => x.Category).ToListAsync();
+        List<ProductGetVM> vm = await _context.Products.Include(x => x.Category)
+            .Select(product => new ProductGetVM()
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                CategoryName = product.Category.Name,
+                MainImagePath = product.MainImagePath,
+                HoverImagePath = product.HoverImagePath,
+                Price = product.Price
+            }).ToListAsync();
 
-        return View(products);
+        List<ProductGetVM> vms = new();
+
+
+
+
+        return View(vm);
     }
 
     public async Task<IActionResult> Create()
     {
-        await SendCategoriesWithViewBag();
+        await SendItemsWithViewBag();
 
         return View();
     }
@@ -28,12 +42,14 @@ public class ProductController(AppDbContext _context, IWebHostEnvironment _envir
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(ProductCreateVM vm)
     {
-            
+
         if (!ModelState.IsValid)
         {
-            await SendCategoriesWithViewBag();
+            await SendItemsWithViewBag();
             return View(vm);
         }
+
+
         var isExistCategory = await _context.Categories.AnyAsync(x => x.Id == vm.CategoryId);
 
         if (!isExistCategory)
@@ -42,24 +58,36 @@ public class ProductController(AppDbContext _context, IWebHostEnvironment _envir
             return View(vm);
         }
 
-        if (!vm.MainImage.ContentType.Contains("image"))
+        foreach (var tagId in vm.TagIds)
+        {
+            var isExistTag = await _context.Tags.AnyAsync(x => x.Id == tagId);
+
+            if (!isExistTag)
+            {
+                ModelState.AddModelError("TagIds", "This Tag doesn't exist.");
+                return View(vm);
+            }
+        }
+
+
+        if (!vm.MainImage.CheckType())
         {
             ModelState.AddModelError("MainImage", "You can only add image types");
             return View(vm);
         }
 
-        if (vm.MainImage.Length > 2 * 1024 * 1024)
+        if (!vm.MainImage.CheckSize(2))
         {
             ModelState.AddModelError("MainImage", "Size must be maximum 2MB");
             return View(vm);
         }
-        if (!vm.HoverImage.ContentType.Contains("image"))
+        if (!vm.HoverImage.CheckType())
         {
             ModelState.AddModelError("HoverImage", "You can only add image types");
             return View(vm);
         }
 
-        if (vm.HoverImage.Length > 2 * 1024 * 1024)
+        if (!vm.HoverImage.CheckSize(2))
         {
             ModelState.AddModelError("HoverImage", "Size must be maximum 2MB");
             return View(vm);
@@ -87,9 +115,20 @@ public class ProductController(AppDbContext _context, IWebHostEnvironment _envir
             Price = vm.Price,
             MainImagePath = uniqueMainImageName,
             HoverImagePath = uniqueHoverImageName,
-            Rating = vm.Rating
+            Rating = vm.Rating,
+            ProductTags = []
         };
 
+        foreach (var tag in vm.TagIds)
+        {
+            ProductTag productTag = new()
+            {
+                TagId = tag,
+                Product = product
+            };
+
+            product.ProductTags.Add(productTag);
+        }
 
 
         await _context.Products.AddAsync(product);
@@ -102,49 +141,134 @@ public class ProductController(AppDbContext _context, IWebHostEnvironment _envir
     [HttpGet]
     public async Task<IActionResult> Update(int id)
     {
-        var product = await _context.Products.FindAsync(id);
+        var product = await _context.Products.Include(x => x.ProductTags).FirstOrDefaultAsync(x => x.Id == id);
 
         if (product == null) return NotFound();
 
-        await SendCategoriesWithViewBag();
+        await SendItemsWithViewBag();
 
-        return View(product);
+        ProductUpdateVM vm = new ProductUpdateVM()
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            CategoryId = product.CategoryId,
+            Price = product.Price,
+            Rating = product.Rating,
+            MainImagePath = product.MainImagePath,
+            HoverImagePath = product.HoverImagePath,
+            TagIds = product.ProductTags.Select(x => x.TagId).ToList()
+        };
+
+        return View(vm);
 
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Update(Product product)
+    public async Task<IActionResult> Update(ProductUpdateVM vm)
     {
         if (!ModelState.IsValid)
         {
-            await SendCategoriesWithViewBag();
-            return View(product);
+            await SendItemsWithViewBag();
+            return View(vm);
         }
 
-        var existProduct = await _context.Products.FindAsync(product.Id);
+        foreach (var tagId in vm.TagIds)
+        {
+            var isExistTag = await _context.Tags.AnyAsync(x => x.Id == tagId);
+
+            if (!isExistTag)
+            {
+                ModelState.AddModelError("TagIds", "This Tag doesn't exist.");
+                return View(vm);
+            }
+        }
+
+        if (!vm.MainImage?.CheckType() ?? false)
+        {
+            ModelState.AddModelError("MainImage", "You can only add image types");
+            return View(vm);
+        }
+
+        if (!vm.MainImage?.CheckSize(2) ?? false)
+        {
+            ModelState.AddModelError("MainImage", "Size must be maximum 2MB");
+            return View(vm);
+        }
+        if (!vm.HoverImage?.CheckType() ?? false)
+        {
+            ModelState.AddModelError("HoverImage", "You can only add image types");
+            return View(vm);
+        }
+
+        if (!vm.HoverImage?.CheckSize(2) ?? false)
+        {
+            ModelState.AddModelError("HoverImage", "Size must be maximum 2MB");
+            return View(vm);
+        }
+
+        var existProduct = await _context.Products.Include(x => x.ProductTags).FirstOrDefaultAsync(x => x.Id == vm.Id);
         if (existProduct == null) return BadRequest();
 
-        var isExistCategory = await _context.Categories.AnyAsync(x => x.Id == product.CategoryId);
+        var isExistCategory = await _context.Categories.AnyAsync(x => x.Id == vm.CategoryId);
 
         if (!isExistCategory)
         {
             ModelState.AddModelError("CategoryId", "There is no such category!");
-            return View(product);
+            return View(vm);
         }
 
-        existProduct.Name = product.Name;
-        existProduct.Description = product.Description;
-        existProduct.Price = product.Price;
+        existProduct.Name = vm.Name;
+        existProduct.Description = vm.Description;
+        existProduct.Price = vm.Price;
+        existProduct.Rating = vm.Rating;
         //existProduct.ImagePath = product.ImagePath;
-        existProduct.CategoryId = product.CategoryId;
+        existProduct.CategoryId = vm.CategoryId;
+
+        existProduct.ProductTags = [];
+
+        foreach (var tagId in vm.TagIds)
+        {
+            ProductTag productTag = new()
+            {
+                TagId = tagId,
+                ProductId = existProduct.Id
+            };
+
+            existProduct.ProductTags.Add(productTag);
+        }
+
+
+        string folderPath = Path.Combine(_environment.WebRootPath, "assets", "images", "website-images");
+
+        if (vm.MainImage is { })
+        {
+            string newMainImagePath = await vm.MainImage.SaveFileAsync(folderPath);
+
+            string existMainImagePath = Path.Combine(folderPath, existProduct.MainImagePath);
+
+            ExtensionMethods.DeleteFile(existMainImagePath);
+
+            existProduct.MainImagePath = newMainImagePath;
+        }
+
+        if (vm.HoverImage is { })
+        {
+            string newHoverImagePath = await vm.HoverImage.SaveFileAsync(folderPath);
+
+            string existHoverImagePath = Path.Combine(folderPath, existProduct.HoverImagePath);
+
+            ExtensionMethods.DeleteFile(existHoverImagePath);
+
+            existProduct.HoverImagePath = newHoverImagePath;
+        }
+
 
         _context.Products.Update(existProduct);
         await _context.SaveChangesAsync();
 
         return RedirectToAction(nameof(Index));
-
-
     }
 
 
@@ -172,9 +296,36 @@ public class ProductController(AppDbContext _context, IWebHostEnvironment _envir
     }
 
 
-    private async Task SendCategoriesWithViewBag()
+    public async Task<IActionResult> Detail(int id)
+    {
+        var product = await _context.Products.Include(x => x.Category).Select(product => new ProductGetVM()
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Description = product.Description,
+            CategoryName = product.Category.Name,
+            MainImagePath = product.MainImagePath,
+            HoverImagePath = product.HoverImagePath,
+            Price = product.Price,
+            TagNames = product.ProductTags.Select(x => x.Tag.Name).ToList()
+        }).FirstOrDefaultAsync(x => x.Id == id);
+
+
+        if (product is null)
+            return NotFound();
+
+        return View(product);
+    }
+
+
+    private async Task SendItemsWithViewBag()
     {
         var categories = await _context.Categories.ToListAsync();
         ViewBag.Categories = categories;
+
+
+        var tags = await _context.Tags.ToListAsync();
+
+        ViewBag.Tags = tags;
     }
 }

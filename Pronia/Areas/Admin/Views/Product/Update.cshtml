@@ -1,10 +1,11 @@
-﻿@model Product
+﻿@model ProductUpdateVM
 <div class="container">
 	<div class="row">
 
 		<h2>Update Product</h2>
 
-		<form method="post" asp-action="Update">
+		<form method="post" enctype="multipart/form-data">
+
 			<div class="form-group">
 				<label for="title">Name</label>
 				<input asp-for="Name" class="form-control" id="title" aria-describedby="emailHelp" placeholder="Name">
@@ -18,15 +19,44 @@
 			</div>
 
 			@* <div class="form-group">
-				<label for="ImagePath">ImagePath</label>
-				<input asp-for="ImagePath" class="form-control" id="ImagePath" aria-describedby="emailHelp" placeholder="ImagePath">
-				<span class="text-danger" asp-validation-for="ImagePath"></span>
+
+				<label for="MainImage">Main Image</label>
+				<input asp-for="MainImage" class="form-control" id="MainImage" aria-describedby="emailHelp" placeholder="MainImage">
+				<span class="text-danger" asp-validation-for="MainImage"></span>
 			</div> *@
+
+			<div class="form-group">
+				<input type="hidden" asp-for="MainImagePath" />
+				<img src="~/assets/images/website-images/@Model.MainImagePath" width="50" heigth="50" alt="Alternate Text" />
+				<label for="MainImage">MainImage</label>
+				<input asp-for="MainImage" class="form-control" id="MainImage" placeholder="MainImage">
+				<span class="text-danger" asp-validation-for="MainImage"></span>
+			</div>
+
+			@* <div class="form-group">
+				<label for="HoverImage">Hover Image</label>
+				<input asp-for="HoverImage" class="form-control" id="HoverImage" aria-describedby="emailHelp" placeholder="HoverImage">
+				<span class="text-danger" asp-validation-for="HoverImage"></span>
+			</div> *@
+
+			<div class="form-group">
+				<input type="hidden" asp-for="HoverImagePath" />
+				<img src="~/assets/images/website-images/@Model.HoverImagePath" width="50" heigth="50" alt="Alternate Text" />
+				<label for="HoverImage">Hover Image</label>
+				<input asp-for="HoverImage" class="form-control" id="HoverImage" placeholder="HoverImage">
+				<span class="text-danger" asp-validation-for="HoverImage"></span>
+			</div>
 
 			<div class="form-group">
 				<label for="Price">Price</label>
 				<input asp-for="Price" class="form-control" id="Price" aria-describedby="emailHelp" placeholder="Price">
 				<span class="text-danger" asp-validation-for="Price"></span>
+			</div>
+
+			<div class="form-group">
+				<label for="Rating">Rating</label>
+				<input asp-for="Rating" class="form-control" id="Rating" aria-describedby="emailHelp" placeholder="Rating">
+				<span class="text-danger" asp-validation-for="Rating"></span>
 			</div>
 
 			<div class="form-group">
@@ -44,6 +74,22 @@
 
 				<span class="text-danger" asp-validation-for="CategoryId"></span>
 			</div>
+
+			<div class="form-group">
+				<label for="TagIds">Tags</label>
+
+				<select asp-for="TagIds" id="TagIds">
+
+					@foreach (Tag tag in ViewBag.Tags)
+					{
+						<option value="@tag.Id">@tag.Name</option>
+
+					}
+				</select>
+
+				<span class="text-danger" asp-validation-for="TagIds"></span>
+			</div>
+
 
 			<button type="submit" class="btn btn-primary">Submit</button>
 			<a asp-action="Index" class="btn btn-secondary">Cancel</a>

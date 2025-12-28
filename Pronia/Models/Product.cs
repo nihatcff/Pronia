@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Pronia.Models;
 
-public class Product:BaseEntity
+public class  Product:BaseEntity
 {
     [Required]
     public string Name { get; set; }
@@ -22,6 +22,10 @@ public class Product:BaseEntity
     public string MainImagePath { get; set; }
     public string HoverImagePath { get; set; }
     public ICollection<ProductImage> ProductImages { get; set; } = [];
+    public ICollection<ProductTag> ProductTags { get; set; } = [];
+
+
+
     [Range(1, 5)]
     public double? Rating { get; set; }
 } 

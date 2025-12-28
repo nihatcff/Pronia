@@ -66,6 +66,22 @@
 				<span class="text-danger" asp-validation-for="CategoryId"></span>
 			</div>
 
+
+			<div class="form-group">
+				<label for="TagIds">Tags</label>
+
+				<select asp-for="TagIds" id="TagIds">
+
+					@foreach (Tag tag in ViewBag.Tags)
+					{
+						<option value="@tag.Id">@tag.Name</option>
+
+					}
+				</select>
+
+				<span class="text-danger" asp-validation-for="TagIds"></span>
+			</div>
+
 			<button type="submit" class="btn btn-primary">Submit</button>
 			<a asp-action="Index" class="btn btn-secondary">Cancel</a>
 		</form>
