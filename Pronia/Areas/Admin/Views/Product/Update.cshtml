@@ -48,6 +48,27 @@
 			</div>
 
 			<div class="form-group">
+
+
+				@for (int i = 0; i < Model.AdditionalImagePaths.Count; i++)
+				{
+					<div class="imageDiv" style="display:inline">
+						<input type="hidden" asp-for="AdditionalImagePaths" value="@Model.AdditionalImagePaths[i]" />
+						<input type="hidden" asp-for="AdditionalImageIds" value="@Model.AdditionalImageIds[i]" />
+
+						<div class="image" style="position:relative;width:50px;height:50px;display:inline">
+							<img src="~/assets/images/website-images/@Model.AdditionalImagePaths[i]" width="50" heigth="50" alt="Alternate Text" />
+							<span class="closeButton" style="position:absolute;right:4px;top:-4px;padding:1px;background-color:red;color:white;font-size:10px;cursor:pointer">X</span>
+						</div>
+					</div>
+				}
+
+				<label for="Images">Images</label>
+				<input asp-for="Images" class="form-control" id="Images" placeholder="Images">
+				<span class="text-danger" asp-validation-for="Images"></span>
+			</div>
+
+			<div class="form-group">
 				<label for="Price">Price</label>
 				<input asp-for="Price" class="form-control" id="Price" aria-describedby="emailHelp" placeholder="Price">
 				<span class="text-danger" asp-validation-for="Price"></span>
@@ -97,3 +118,17 @@
 
 	</div>
 </div>
+
+<script>
+
+	const removeButtons = document.querySelectorAll(".closeButton");
+
+	removeButtons.forEach(btn=>{
+		btn.addEventListener("click", (e)=>{
+			e.preventDefault();
+
+			btn.parentElement.parentElement.remove();
+		})
+	})
+
+</script>

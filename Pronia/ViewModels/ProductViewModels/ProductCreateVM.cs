@@ -17,9 +17,9 @@ public class ProductCreateVM
     [Required]
     public int CategoryId { get; set; }
     public List<int> TagIds { get; set; }
-    public IFormFile MainImage { get; set; }
-    public IFormFile HoverImage { get; set; }
-    public List<IFormFile>? Images { get; set; }
+    public IFormFile MainImage { get; set; } = null!;
+    public IFormFile HoverImage { get; set; } = null!;
+    public List<IFormFile> Images { get; set; } = [];
     [Range(1,5)]
     public double Rating { get; set; }
 }

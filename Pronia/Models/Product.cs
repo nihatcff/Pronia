@@ -16,16 +16,13 @@ public class  Product:BaseEntity
     [Precision(10,2)]
     [Range(0,double.MaxValue)]
     public decimal Price { get; set; }
-    public Category? Category { get; set; }
+    public Category Category { get; set; }
     [Required]
     public int CategoryId { get; set; }
     public string MainImagePath { get; set; }
     public string HoverImagePath { get; set; }
     public ICollection<ProductImage> ProductImages { get; set; } = [];
     public ICollection<ProductTag> ProductTags { get; set; } = [];
-
-
-
     [Range(1, 5)]
     public double? Rating { get; set; }
 } 

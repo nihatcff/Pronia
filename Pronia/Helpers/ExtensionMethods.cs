@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 
-namespace Pronia.Helpers
-{
+namespace Pronia.Helpers;
+
     public static class ExtensionMethods
     {
         public static bool CheckSize(this IFormFile file, int mb)
         {
-            return file.Length < mb * 1024 * 1024;
+            return file.Length <= mb * 1024 * 1024;
         }
 
         public static bool CheckType(this IFormFile file, string type = "image")
@@ -36,4 +36,4 @@ namespace Pronia.Helpers
         }
 
     }
-}
+
