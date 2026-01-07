@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Pronia.Controllers
 {
-    public class AccountController(UserManager<AppUser> _userManager, SignInManager<AppUser> _signInManager ) : Controller
+    public class AccountController(UserManager<AppUser> _userManager, SignInManager<AppUser> _signInManager,RoleManager<IdentityRole> _roleManager ) : Controller
     {
         public IActionResult Register()
         {
@@ -53,8 +53,9 @@ namespace Pronia.Controllers
                 return View();
             }
 
+            await _signInManager.SignInAsync(newUser,false);
 
-            return Ok("Ok");
+            return RedirectToAction(nameof(Index),"Home");
         }
 
         public IActionResult Login()
@@ -84,9 +85,9 @@ namespace Pronia.Controllers
                 return View(vm);
             }
 
-            await _signInManager.SignInAsync(user, isPersistent: false); 
+            await _signInManager.SignInAsync(user, vm.IsRemember);
 
-            return Ok($"{user.Fullname} Welcome!");
+            return RedirectToAction(nameof(Index), "Home");
         }
 
         public async Task<IActionResult> LogOut()
@@ -94,5 +95,24 @@ namespace Pronia.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction(nameof(Login));
         }
+
+        /*public async Task<IActionResult> CreateRoles()
+        {
+            await _roleManager.CreateAsync(new IdentityRole()
+            {
+                Name = "User"
+            });
+
+            await _roleManager.CreateAsync(new IdentityRole()
+            {
+                Name = "Admin"
+            });
+            await _roleManager.CreateAsync(new IdentityRole()
+            {
+                Name = "Moderator"
+            });
+
+            return Ok("Roles Created");
+        }*/
     }
 }

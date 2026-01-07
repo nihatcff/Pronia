@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Pronia.Contexts;
 
@@ -11,9 +12,11 @@ using Pronia.Contexts;
 namespace Pronia.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260107163424_settedConfigurations")]
+    partial class settedConfigurations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -307,10 +310,7 @@ namespace Pronia.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Products", t =>
-                        {
-                            t.HasCheckConstraint("CK_Product_Price", "[Price]>=0");
-                        });
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("Pronia.Models.ProductImage", b =>
@@ -429,9 +429,9 @@ namespace Pronia.Migrations
             modelBuilder.Entity("Pronia.Models.Product", b =>
                 {
                     b.HasOne("Pronia.Models.Category", "Category")
-                        .WithMany("Products")
+                        .WithMany()
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Category");
@@ -439,13 +439,13 @@ namespace Pronia.Migrations
 
             modelBuilder.Entity("Pronia.Models.ProductImage", b =>
                 {
-                    b.HasOne("Pronia.Models.Product", "Product")
+                    b.HasOne("Pronia.Models.Product", "product")
                         .WithMany("ProductImages")
                         .HasForeignKey("ProductID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Product");
+                    b.Navigation("product");
                 });
 
             modelBuilder.Entity("Pronia.Models.ProductTag", b =>
@@ -465,11 +465,6 @@ namespace Pronia.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("Tag");
-                });
-
-            modelBuilder.Entity("Pronia.Models.Category", b =>
-                {
-                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("Pronia.Models.Product", b =>

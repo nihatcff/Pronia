@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Pronia.Contexts;
 
 namespace Pronia.Controllers
@@ -11,6 +12,7 @@ namespace Pronia.Controllers
         {
             _context= context;
         }
+        [Authorize]
         public IActionResult Index()
         {
             var cards = _context.Cards.ToList();

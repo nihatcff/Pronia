@@ -22,14 +22,19 @@ namespace Pronia
                 options.Password.RequireNonAlphanumeric = true;
                 options.Password.RequiredLength = 6;
                 options.Password.RequireUppercase = true;
-                options.Lockout.MaxFailedAccessAttempts = 3;
-                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(3);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
 
             }).AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
 
             var app = builder.Build();
             app.UseStaticFiles();
             app.UseRouting();
+
+
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
 
             app.MapControllerRoute(

@@ -151,7 +151,7 @@ public class ProductController(AppDbContext _context, IWebHostEnvironment _envir
             ProductImage productImage = new()
             {
                 ImagePath = uniqueFilePath,
-                product = product
+                Product = product
             };
 
             product.ProductImages.Add(productImage);

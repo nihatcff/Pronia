@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Pronia.Models;
+using System.Reflection;
 
 namespace Pronia.Contexts
 {
@@ -19,6 +20,12 @@ namespace Pronia.Contexts
         }
 
 
+        protected override void OnModelCreating(ModelBuilder builder)
+        {
+            builder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+            base.OnModelCreating(builder);
+        }
+        
 
         public DbSet<Card> Cards { get; set; }
         public DbSet<Product> Products { get; set; }
