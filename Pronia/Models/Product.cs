@@ -16,6 +16,7 @@ public class  Product:BaseEntity
     public string HoverImagePath { get; set; } = string.Empty;  
     public ICollection<ProductImage> ProductImages { get; set; } = [];
     public ICollection<ProductTag> ProductTags { get; set; } = [];
+    public ICollection<BasketItem> BasketItems { get; set; } = [];
     [Range(1, 5)]
     public double? Rating { get; set; }
 } 
