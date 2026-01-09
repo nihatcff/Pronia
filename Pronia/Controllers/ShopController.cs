@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Pronia.Abstraction;
 using Pronia.ViewModels.ProductViewModels;
@@ -46,8 +47,8 @@ namespace Pronia.Controllers
             }
             return View(product);
         }
-
-       /* public async Task<IActionResult> AddToBasket(int productId)
+        [Authorize]
+        public async Task<IActionResult> AddToBasket(int productId)
         {
             var isExistProduct = await _context.Products.AnyAsync(x => x.Id == productId);
 
@@ -58,24 +59,77 @@ namespace Pronia.Controllers
 
             string userID = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
 
-            var isExistUser = await _context.Users.AnyAsync(x => x.Id == userID) ;
+            var isExistUser = await _context.Users.AnyAsync(x => x.Id == userID);
 
             if (!isExistUser)
                 return BadRequest();
 
 
-            var existBasketItem = await _context
+            var existBasketItem = await _context.BasketItems.FirstOrDefaultAsync(x => x.AppUserId == userID && x.ProductId == productId);
 
-            BasketItem basketItem = new()
+            if (existBasketItem is { })
             {
-                ProductId = productId,
-                AppUserId = userID,
-                Count = 1
-            };
+                existBasketItem.Count++;
 
-        }*/
+                _context.BasketItems.Update(existBasketItem);
+            }
+            else
+            {
+                BasketItem basketItem = new()
+                {
+                    ProductId = productId,
+                    AppUserId = userID,
+                    Count = 1
+                };
+                await _context.BasketItems.AddAsync(basketItem);
+            }
+            await _context.SaveChangesAsync();
+
+            string? returnUrl = Request.Headers["Referer"];
+
+            if (!string.IsNullOrWhiteSpace(returnUrl))
+                return Redirect(returnUrl);
+
+            return RedirectToAction("Index");
+
+        }
+
+        [Authorize]
+        public async Task<IActionResult> RemoveFromBasket(int productId)
+        {
+            var isExistProduct = await _context.Products.AnyAsync(x => x.Id == productId);
+
+            if (isExistProduct == false)
+            {
+                return NotFound();
+            }
+
+            string userID = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+
+            var isExistUser = await _context.Users.AnyAsync(x => x.Id == userID);
+
+            if (!isExistUser)
+                return BadRequest();
+
+            var basketItem = await _context.BasketItems.FirstOrDefaultAsync(x=>x.AppUserId == userID && x.ProductId == productId);
+
+            if (basketItem == null) return NotFound();
+
+            _context.BasketItems.Remove(basketItem);
+            await _context.SaveChangesAsync();
+
+
+            string? returnUrl = Request.Headers["Referer"];
+
+            if (!string.IsNullOrWhiteSpace(returnUrl))
+                return Redirect(returnUrl);
+
+            return RedirectToAction("Index");   
+        }
+
 
     }
 
-   
+
+
 }
